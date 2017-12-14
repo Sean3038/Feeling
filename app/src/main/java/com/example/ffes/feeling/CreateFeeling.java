@@ -21,6 +21,8 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.FileProvider;
 import android.support.v7.app.AppCompatActivity;
 import android.text.format.DateFormat;
+import android.util.DisplayMetrics;
+import android.view.Display;
 import android.widget.ImageView;
 import android.widget.Toast;
 
@@ -69,10 +71,14 @@ public class CreateFeeling extends AppCompatActivity implements TakePicture {
     }
 
     @Override
-    protected void onStop() {
-        mWatch.disconnect();
-        mGps.disconnect();
-        super.onStop();
+    protected void onDestroy() {
+        if(mWatch!=null){
+            mWatch.disconnect();
+        }
+        if(mGps!=null){
+            mGps.disconnect();
+        }
+        super.onDestroy();
     }
 
     @Override
@@ -105,7 +111,7 @@ public class CreateFeeling extends AppCompatActivity implements TakePicture {
                 }
                 if (flag) {
                     Toast.makeText(this, "加載成功", Toast.LENGTH_LONG).show();
-                    //takePicture();
+                    takePicture();
                 } else {
                     Toast.makeText(this, "加載失敗", Toast.LENGTH_LONG).show();
                     finish();
@@ -160,7 +166,9 @@ public class CreateFeeling extends AppCompatActivity implements TakePicture {
         try {
             InputStream in = getContentResolver().openInputStream(picuUi);
             bitmap = BitmapFactory.decodeStream(in);
-            bitmap = ThumbnailUtils.extractThumbnail(bitmap, 800, 1280);
+            DisplayMetrics displayMetrics=new DisplayMetrics();
+            getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+            bitmap = ThumbnailUtils.extractThumbnail(bitmap, displayMetrics.widthPixels, displayMetrics.heightPixels);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
