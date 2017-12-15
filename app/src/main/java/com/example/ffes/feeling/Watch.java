@@ -6,8 +6,10 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.content.Context;
 import android.os.AsyncTask;
+import android.util.Log;
 import android.widget.Toast;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -19,7 +21,7 @@ import java.io.OutputStream;
 public class Watch implements Bluetooth,GetFeeling {
     public static final String TAG="WATCH";
     public static final java.util.UUID UUID = java.util.UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
-    public static final String DEVICE_NAME="NONE";
+    public static final String DEVICE_NAME="HENK";
 
 
     BluetoothAdapter mBluetoothAdapter;
@@ -33,6 +35,8 @@ public class Watch implements Bluetooth,GetFeeling {
     float heartRate;
     float temperature;
     float humidity;
+    ConnectFeelingAsyncTask connectFeelingAsyncTask;
+    ReceiveDataAsyncTask receiveDataAsyncTask;
 
     Watch(Context context){
         mContext=context;
@@ -40,22 +44,27 @@ public class Watch implements Bluetooth,GetFeeling {
     }
 
     @Override
-    public void connect() {
+    public synchronized void connect() {
         if(isBluetoothConnected){
             return;
         }
         for(BluetoothDevice device:mBluetoothAdapter.getBondedDevices()){
             if(device.getName().equals(DEVICE_NAME)){
-                new ConnectFeelingAsyncTask().execute(device.getAddress());
+                connectFeelingAsyncTask=new ConnectFeelingAsyncTask();
+                connectFeelingAsyncTask.execute(device.getAddress());
                 break;
             }
         }
     }
 
     @Override
-    public void disconnect() {
+    public synchronized void disconnect() {
         if (socket != null) {
+            connectFeelingAsyncTask.cancel(true);
+            receiveDataAsyncTask.cancel(true);
             try {
+                socket.getInputStream().close();
+                socket.getOutputStream().close();
                 socket.close();
                 isBluetoothConnected = false;
             } catch (IOException e) {
@@ -112,7 +121,8 @@ public class Watch implements Bluetooth,GetFeeling {
                 Toast.makeText(mContext, "連接成功",
                         Toast.LENGTH_LONG).show();
                 mProgressDialog.dismiss();
-                new ReceiveDataAsyncTask().execute();
+                receiveDataAsyncTask=new ReceiveDataAsyncTask();
+                receiveDataAsyncTask.execute();
             } else {
                 Toast.makeText(mContext, "連接失敗",
                         Toast.LENGTH_LONG).show();
@@ -124,8 +134,6 @@ public class Watch implements Bluetooth,GetFeeling {
     class ReceiveDataAsyncTask extends AsyncTask<Void, String, Void> {
         private InputStream mInputStream;
         private OutputStream mOutputStream;
-        final byte delimiter = 10;
-        int position=0;
 
         @Override
         protected void onPreExecute() {
@@ -149,36 +157,36 @@ public class Watch implements Bluetooth,GetFeeling {
         protected Void doInBackground(Void... params) {
 
             while (true) {
-
                 String incomingMessage = "";
-                byte[] buffer = new byte[1024];
                 try {
-                    int len=mInputStream.available();
-                    if(len>0){
-                        byte[] packetBytes  = new byte[len];
-                        mInputStream.read(buffer);
-                        for(int i=0;i<len;i++){
-                            byte b=packetBytes [i];
-                            if(b==delimiter){
-                                byte[] encodedBytes = new byte[position];
-                                System.arraycopy(buffer, 0, encodedBytes, 0, encodedBytes.length);
-                                final String data = new String(encodedBytes, "US-ASCII");
-                                publishProgress(data);
-                                position = 0;
-                            }else{
-                                buffer[position++]=b;
-                            }
-                        }
+                    ByteArrayOutputStream byteBuffer = new ByteArrayOutputStream();
+                    byte[] buffer = new byte[512];
+                    int len=0;
+                    while((len = mInputStream.read(buffer)) != -1){
+                        byteBuffer.write(buffer,0,len);
+                        incomingMessage=new String(byteBuffer.toByteArray());
+                        publishProgress(incomingMessage);
                     }
+                    byteBuffer.close();
                 } catch (IOException e) {
                     e.printStackTrace();
+                    break;
                 }
             }
+            return null;
         }
 
         @Override
         protected void onProgressUpdate(String... values) {
-
+            if(values[0].length()>0) {
+                int l = values[0].lastIndexOf("#");
+                int s = values[0].lastIndexOf("~");
+                if(l<s){
+                    String result = values[0].substring(l+1, s);
+                    Toast.makeText(mContext, result,
+                            Toast.LENGTH_LONG).show();
+                }
+            }
         }
     }
 }

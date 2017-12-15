@@ -2,7 +2,6 @@ package com.example.ffes.feeling;
 
 import android.Manifest;
 import android.app.Activity;
-import android.app.ProgressDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.content.Context;
 import android.content.Intent;
@@ -22,8 +21,8 @@ import android.support.v4.content.FileProvider;
 import android.support.v7.app.AppCompatActivity;
 import android.text.format.DateFormat;
 import android.util.DisplayMetrics;
-import android.view.Display;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.xiaopo.flying.sticker.StickerView;
@@ -53,6 +52,8 @@ public class CreateFeeling extends AppCompatActivity implements TakePicture {
 
     Watch mWatch;
     GPS mGps;
+    @BindView(R.id.content)
+    TextView content;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,10 +73,10 @@ public class CreateFeeling extends AppCompatActivity implements TakePicture {
 
     @Override
     protected void onDestroy() {
-        if(mWatch!=null){
+        if (mWatch != null) {
             mWatch.disconnect();
         }
-        if(mGps!=null){
+        if (mGps != null) {
             mGps.disconnect();
         }
         super.onDestroy();
@@ -95,6 +96,17 @@ public class CreateFeeling extends AppCompatActivity implements TakePicture {
                     loadBTDevice();
                 }
         }
+    }
+
+    @Override
+    protected void onStop() {
+        if (mWatch != null) {
+            mWatch.disconnect();
+        }
+        if (mGps != null) {
+            mGps.disconnect();
+        }
+        super.onStop();
     }
 
     @Override
@@ -138,13 +150,13 @@ public class CreateFeeling extends AppCompatActivity implements TakePicture {
     public byte[] getPicture() {
         try {
             InputStream in = getContentResolver().openInputStream(imageurl);
-            ByteArrayOutputStream baos=new ByteArrayOutputStream();
-            byte[] buffer=new byte[1024];
-            int len=0;
-            while((len=in.read(buffer))==-1){
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            byte[] buffer = new byte[1024];
+            int len = 0;
+            while ((len = in.read(buffer)) == -1) {
                 baos.write(buffer);
             }
-            byte[] result=baos.toByteArray();
+            byte[] result = baos.toByteArray();
             in.close();
             baos.close();
             return result;
@@ -166,7 +178,7 @@ public class CreateFeeling extends AppCompatActivity implements TakePicture {
         try {
             InputStream in = getContentResolver().openInputStream(picuUi);
             bitmap = BitmapFactory.decodeStream(in);
-            DisplayMetrics displayMetrics=new DisplayMetrics();
+            DisplayMetrics displayMetrics = new DisplayMetrics();
             getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
             bitmap = ThumbnailUtils.extractThumbnail(bitmap, displayMetrics.widthPixels, displayMetrics.heightPixels);
         } catch (FileNotFoundException e) {
@@ -211,13 +223,13 @@ public class CreateFeeling extends AppCompatActivity implements TakePicture {
         }
     }
 
-    private void loadBTDevice(){
-        mWatch=new Watch(this);
+    private void loadBTDevice() {
+        mWatch = new Watch(this);
         mWatch.connect();
     }
 
-    private void loadLocation(){
-        mGps=new GPS(this);
+    private void loadLocation() {
+        mGps = new GPS(this);
     }
 
 

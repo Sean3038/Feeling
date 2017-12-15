@@ -23,6 +23,7 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -271,8 +272,6 @@ public class BTTest extends AppCompatActivity implements DeviceAdapter.OnItemCli
     class ReceiveDataAsyncTask extends AsyncTask<Void, String, Void> {
         private InputStream mInputStream;
         private OutputStream mOutputStream;
-        final byte delimiter = 10;
-        int position=0;
 
         @Override
         protected void onPreExecute() {
@@ -296,28 +295,18 @@ public class BTTest extends AppCompatActivity implements DeviceAdapter.OnItemCli
         protected Void doInBackground(Void... params) {
 
             while (true) {
-
                 String incomingMessage = "";
-                byte[] buffer = new byte[1024];
                 try {
-                    int len=mInputStream.available();
-                    if(len>0){
-                        byte[] packetBytes  = new byte[len];
-                        mInputStream.read(buffer);
-                        for(int i=0;i<len;i++){
-                            byte b=packetBytes [i];
-                            if(b==delimiter){
-                                byte[] encodedBytes = new byte[position];
-                                System.arraycopy(buffer, 0, encodedBytes, 0, encodedBytes.length);
-                                final String data = new String(encodedBytes, "US-ASCII");
-                                publishProgress(data);
-                                position = 0;
-                            }else{
-                                buffer[position++]=b;
-                            }
-                        }
+                    ByteArrayOutputStream byteBuffer = new ByteArrayOutputStream();
+                    byte[] buffer = new byte[512];
+                    int len=0;
+                    while((len = mInputStream.read(buffer)) != -1){
+                        byteBuffer.write(buffer,0,len);
+                        incomingMessage=new String(byteBuffer.toByteArray());
+                        publishProgress(incomingMessage);
                     }
-                    } catch (IOException e) {
+                    byteBuffer.close();
+                } catch (IOException e) {
                     e.printStackTrace();
                 }
             }
@@ -325,7 +314,14 @@ public class BTTest extends AppCompatActivity implements DeviceAdapter.OnItemCli
 
         @Override
         protected void onProgressUpdate(String... values) {
-                content.setText(values[0]);
+            if(values[0].length()>0) {
+                int l = values[0].lastIndexOf("#");
+                int s = values[0].lastIndexOf("~");
+                if(l<s){
+                    String result = values[0].substring(l+1, s);
+                    content.setText(result);
+                }
+            }
         }
     }
 
