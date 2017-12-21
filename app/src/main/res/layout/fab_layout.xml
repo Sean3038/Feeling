@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_gravity="bottom|right"
+    android:orientation="vertical"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content">
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/fabHum"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_marginRight="@dimen/little_fab_dimen"
+        android:layout_marginBottom="@dimen/fab_dimen"
+        android:clickable="true"
+        android:visibility="invisible"
+        app:backgroundTint="@color/floatButton_Sub"
+        app:fabSize="mini"
+        app:srcCompat="@drawable/ic_water" />
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/fabTemp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginRight="@dimen/little_fab_dimen"
+        android:layout_marginBottom="@dimen/fab_dimen"
+        android:clickable="true"
+        android:visibility="invisible"
+        app:backgroundTint="@color/floatButton_Sub"
+        app:fabSize="mini"
+        app:srcCompat="@drawable/ic_temp" />
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/fabHeart"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/fab_dimen"
+        android:layout_marginRight="@dimen/little_fab_dimen"
+        android:clickable="true"
+        android:visibility="invisible"
+        app:backgroundTint="@color/floatButton_Sub"
+        app:fabSize="mini"
+        app:srcCompat="@drawable/ic_heart" />
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/fabSave"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/fab_dimen"
+        android:layout_marginRight="@dimen/little_fab_dimen"
+        android:clickable="true"
+        android:visibility="invisible"
+        app:backgroundTint="@color/floatButton_Sub"
+        app:fabSize="mini"
+        app:srcCompat="@drawable/ic_save" />
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/fabAuto"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginRight="@dimen/little_fab_dimen"
+        android:layout_marginBottom="82dp"
+        android:clickable="true"
+        android:visibility="invisible"
+        app:backgroundTint="@color/floatButton_Sub"
+        app:fabSize="mini"
+        app:srcCompat="@drawable/btn_hand" />
+
+</LinearLayout>

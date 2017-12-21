@@ -1,16 +1,44 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#816262"
+    android:background="#223"
     tools:context="com.example.ffes.feeling.StickerTest">
 
     <com.xiaopo.flying.sticker.StickerView
         android:id="@+id/stickerview"
-        android:layout_width="368dp"
-        android:layout_height="495dp"
-        tools:layout_editor_absoluteY="8dp"
-        tools:layout_editor_absoluteX="8dp"></com.xiaopo.flying.sticker.StickerView>
-</android.support.constraint.ConstraintLayout>
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="center"
+        app:showIcons="true"
+        android:background="#223"
+        tools:layout_editor_absoluteX="8dp"
+        tools:layout_editor_absoluteY="8dp">
+
+        <ImageView
+            android:id="@+id/imageView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:adjustViewBounds="true"
+            android:scaleType="fitCenter"
+            app:srcCompat="@drawable/bg_example" />
+    </com.xiaopo.flying.sticker.StickerView>
+
+    <include layout="@layout/fab_layout"></include>
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/floatingActionButton"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_gravity="bottom|right"
+        android:layout_margin="@dimen/fab_dimen"
+        android:clickable="true"
+        android:rotation="45"
+        app:fabSize="normal"
+        app:backgroundTint="@color/floatButton_Main"
+        app:srcCompat="@drawable/btn_cross" />
+
+</android.support.design.widget.CoordinatorLayout>

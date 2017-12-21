@@ -52,6 +52,7 @@ public class CreateFeeling extends AppCompatActivity implements TakePicture {
 
     Watch mWatch;
     GPS mGps;
+
     @BindView(R.id.content)
     TextView content;
 
