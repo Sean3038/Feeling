@@ -1,15 +1,21 @@
 package com.example.ffes.feeling;
 
+import android.animation.Animator;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.design.widget.BottomSheetBehavior;
 import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.view.ViewCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.DisplayMetrics;
 import android.view.View;
+import android.view.ViewAnimationUtils;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
@@ -62,6 +68,7 @@ public class StickerTest extends AppCompatActivity implements Animation.Animatio
 
     FirebaseRepository repository;
 
+    BottomSheetBehavior bottomSheetBehavior;
     int width;
     int height;
     boolean isOpened = false;
@@ -86,6 +93,64 @@ public class StickerTest extends AppCompatActivity implements Animation.Animatio
         deleteIcon.setIconEvent(new DeleteIconEvent());
         stickerview.setIcons(Arrays.asList(deleteIcon,zoomIcon));
         Timber.d(Calendar.getInstance().getTime().toString());
+
+        bottomSheetBehavior=BottomSheetBehavior.from(findViewById(R.id.sticker_picker));
+        bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+        bottomSheetBehavior.setBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
+            @Override
+            public void onStateChanged(@NonNull View bottomSheet, int newState) {
+                switch (newState){
+                    case BottomSheetBehavior.STATE_EXPANDED:
+                        Animator animation_close= ViewAnimationUtils
+                            .createCircularReveal(floatingActionButton
+                            ,floatingActionButton.getMeasuredWidth()/2
+                            ,floatingActionButton.getMeasuredHeight()/2
+                            ,Math.max(floatingActionButton.getWidth(), floatingActionButton.getHeight()) / 2
+                            ,0);
+                        animation_close.addListener(new Animator.AnimatorListener() {
+                            @Override
+                            public void onAnimationStart(Animator animation) {
+
+                            }
+
+                            @Override
+                            public void onAnimationEnd(Animator animation) {
+                                floatingActionButton.clearAnimation();
+                                floatingActionButton.setVisibility(View.INVISIBLE);
+                            }
+
+                            @Override
+                            public void onAnimationCancel(Animator animation) {
+
+                            }
+
+                            @Override
+                            public void onAnimationRepeat(Animator animation) {
+
+                            }
+                        });
+                        animation_close.start();
+                        break;
+                    case BottomSheetBehavior.STATE_HIDDEN:
+                        Animator animation_open= ViewAnimationUtils
+                                .createCircularReveal(floatingActionButton
+                                        ,floatingActionButton.getMeasuredWidth()/2
+                                        ,floatingActionButton.getMeasuredHeight()/2
+                                        ,0
+                                        ,Math.max(floatingActionButton.getWidth(), floatingActionButton.getHeight()) / 2);
+                        animation_open.start();
+                        floatingActionButton.setVisibility(View.VISIBLE);
+                        break;
+                    case BottomSheetBehavior.STATE_COLLAPSED:
+                        break;
+                }
+            }
+
+            @Override
+            public void onSlide(@NonNull View bottomSheet, float slideOffset) {
+
+            }
+        });
     }
 
     private void autoLayout() {
@@ -221,13 +286,7 @@ public class StickerTest extends AppCompatActivity implements Animation.Animatio
         fabHum.startAnimation(ahum);
     }
 
-    public static void start(Activity activity) {
-        Intent intent = new Intent(activity, StickerTest.class);
-        activity.startActivity(intent);
-    }
-
-    @OnClick(R.id.floatingActionButton)
-    public void onViewClicked() {
+    private void toggle(){
         Animation animation;
         if (isOpened) {
             animation = AnimationUtils.loadAnimation(this, R.anim.floatbuttom_close);
@@ -239,6 +298,16 @@ public class StickerTest extends AppCompatActivity implements Animation.Animatio
             floatingActionButton.startAnimation(animation);
             isProgress = true;
         }
+    }
+
+    public static void start(Activity activity) {
+        Intent intent = new Intent(activity, StickerTest.class);
+        activity.startActivity(intent);
+    }
+
+    @OnClick(R.id.floatingActionButton)
+    public void onViewClicked() {
+        toggle();
     }
 
     @Override
@@ -287,7 +356,9 @@ public class StickerTest extends AppCompatActivity implements Animation.Animatio
                 stickerview.addSticker(heartRate);
                 break;
             case R.id.fabAuto:
-                autoLayout();
+                //autoLayout();
+                toggle();
+                bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
                 break;
             case R.id.fabSave:
                 Bitmap bitmap=stickerview.createBitmap();
