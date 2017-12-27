@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.example.ffes.feeling.stickermange.SquareLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="100dp"
+    android:layout_height="100dp">
+    <ImageView
+        android:id="@+id/sticker"
+        android:clickable="true"
+        android:layout_margin="8dp"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+</com.example.ffes.feeling.stickermange.SquareLayout>

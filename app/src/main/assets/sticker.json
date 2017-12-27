@@ -1,0 +1,17 @@
+{
+  "sticker":{
+    "Animal":[
+		"bull.png",
+		"monkey.png",
+		"kuma.png",
+		"penguin.png",
+		"wolf.png"
+    ],
+	"Food":[
+		"donut.png",
+		"nutella.png",
+		"pizza.png",
+		"popcorn.png"
+	]
+  }
+}

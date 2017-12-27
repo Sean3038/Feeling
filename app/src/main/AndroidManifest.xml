@@ -40,9 +40,11 @@
         </provider>
 
         <activity android:name=".BTTest" />
-        <activity android:name=".StickerTest"
+        <activity
+            android:name=".StickerTest"
             android:screenOrientation="portrait"
-            android:theme="@style/Theme.AppCompat.NoActionBar"/>
+            android:theme="@style/Theme.AppCompat.NoActionBar" />
+        <activity android:name=".feelview.FeelView"></activity>
     </application>
 
 </manifest>

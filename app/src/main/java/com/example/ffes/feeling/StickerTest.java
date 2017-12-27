@@ -3,15 +3,13 @@ package com.example.ffes.feeling;
 import android.animation.Animator;
 import android.app.Activity;
 import android.app.ProgressDialog;
-import android.content.Intent;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomSheetBehavior;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v4.content.ContextCompat;
-import android.support.v4.view.ViewCompat;
+import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.DisplayMetrics;
 import android.view.View;
@@ -24,15 +22,24 @@ import com.example.ffes.feeling.api.Feel;
 import com.example.ffes.feeling.api.FirebaseRepository;
 import com.example.ffes.feeling.api.UploadCallBack;
 import com.example.ffes.feeling.feelingsticker.FeelingSticker;
+import com.example.ffes.feeling.feelingsticker.PersonSticker;
+import com.example.ffes.feeling.stickermange.HeartRateStickerFragment;
+import com.example.ffes.feeling.stickermange.HumidityStickerFragment;
+import com.example.ffes.feeling.stickermange.PageFragment;
+import com.example.ffes.feeling.stickermange.TemperatureStickerFramgment;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.storage.FirebaseStorage;
+import com.ogaclejapan.smarttablayout.SmartTabLayout;
+import com.ogaclejapan.smarttablayout.utils.v4.FragmentPagerItemAdapter;
+import com.ogaclejapan.smarttablayout.utils.v4.FragmentPagerItems;
 import com.xiaopo.flying.sticker.BitmapStickerIcon;
 import com.xiaopo.flying.sticker.DeleteIconEvent;
 import com.xiaopo.flying.sticker.StickerView;
 import com.xiaopo.flying.sticker.ZoomIconEvent;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Calendar;
 
@@ -41,7 +48,7 @@ import butterknife.ButterKnife;
 import butterknife.OnClick;
 import timber.log.Timber;
 
-public class StickerTest extends AppCompatActivity implements Animation.AnimationListener {
+public class StickerTest extends AppCompatActivity implements Animation.AnimationListener,PageFragment.OnReturnSticker {
 
     @BindView(R.id.stickerview)
     StickerView stickerview;
@@ -60,13 +67,20 @@ public class StickerTest extends AppCompatActivity implements Animation.Animatio
     ImageView imageView;
     @BindView(R.id.fabSave)
     FloatingActionButton fabSave;
+    @BindView(R.id.viewpagertab)
+    SmartTabLayout viewpagertab;
+    @BindView(R.id.viewpager)
+    ViewPager viewpager;
 
 
     FeelingSticker temperature;
     FeelingSticker heartRate;
     FeelingSticker humidity;
+    PersonSticker personSticker;
 
     FirebaseRepository repository;
+
+    FragmentPagerItemAdapter adapter;
 
     BottomSheetBehavior bottomSheetBehavior;
     int width;
@@ -74,6 +88,9 @@ public class StickerTest extends AppCompatActivity implements Animation.Animatio
     boolean isOpened = false;
     boolean isProgress = false;
 
+    float hum;
+    float heart;
+    float temp;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -81,7 +98,7 @@ public class StickerTest extends AppCompatActivity implements Animation.Animatio
         setContentView(R.layout.activity_sticker_test);
         ButterKnife.bind(this);
 
-        repository=new FirebaseRepository(FirebaseDatabase.getInstance(), FirebaseStorage.getInstance(), FirebaseAuth.getInstance());
+        repository = new FirebaseRepository(FirebaseDatabase.getInstance(), FirebaseStorage.getInstance(), FirebaseAuth.getInstance());
         stickerview.configDefaultIcons();
         BitmapStickerIcon deleteIcon = new BitmapStickerIcon(
                 ContextCompat.getDrawable(this, R.drawable.sticker_ic_close_white_18dp),
@@ -91,22 +108,22 @@ public class StickerTest extends AppCompatActivity implements Animation.Animatio
                 BitmapStickerIcon.RIGHT_BOTOM);
         zoomIcon.setIconEvent(new ZoomIconEvent());
         deleteIcon.setIconEvent(new DeleteIconEvent());
-        stickerview.setIcons(Arrays.asList(deleteIcon,zoomIcon));
+        stickerview.setIcons(Arrays.asList(deleteIcon, zoomIcon));
         Timber.d(Calendar.getInstance().getTime().toString());
 
-        bottomSheetBehavior=BottomSheetBehavior.from(findViewById(R.id.sticker_picker));
+        bottomSheetBehavior = BottomSheetBehavior.from(findViewById(R.id.sticker_picker));
         bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
         bottomSheetBehavior.setBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
             @Override
             public void onStateChanged(@NonNull View bottomSheet, int newState) {
-                switch (newState){
+                switch (newState) {
                     case BottomSheetBehavior.STATE_EXPANDED:
-                        Animator animation_close= ViewAnimationUtils
-                            .createCircularReveal(floatingActionButton
-                            ,floatingActionButton.getMeasuredWidth()/2
-                            ,floatingActionButton.getMeasuredHeight()/2
-                            ,Math.max(floatingActionButton.getWidth(), floatingActionButton.getHeight()) / 2
-                            ,0);
+                        Animator animation_close = ViewAnimationUtils
+                                .createCircularReveal(floatingActionButton
+                                        , floatingActionButton.getMeasuredWidth() / 2
+                                        , floatingActionButton.getMeasuredHeight() / 2
+                                        , Math.max(floatingActionButton.getWidth(), floatingActionButton.getHeight()) / 2
+                                        , 0);
                         animation_close.addListener(new Animator.AnimatorListener() {
                             @Override
                             public void onAnimationStart(Animator animation) {
@@ -132,12 +149,12 @@ public class StickerTest extends AppCompatActivity implements Animation.Animatio
                         animation_close.start();
                         break;
                     case BottomSheetBehavior.STATE_HIDDEN:
-                        Animator animation_open= ViewAnimationUtils
+                        Animator animation_open = ViewAnimationUtils
                                 .createCircularReveal(floatingActionButton
-                                        ,floatingActionButton.getMeasuredWidth()/2
-                                        ,floatingActionButton.getMeasuredHeight()/2
-                                        ,0
-                                        ,Math.max(floatingActionButton.getWidth(), floatingActionButton.getHeight()) / 2);
+                                        , floatingActionButton.getMeasuredWidth() / 2
+                                        , floatingActionButton.getMeasuredHeight() / 2
+                                        , 0
+                                        , Math.max(floatingActionButton.getWidth(), floatingActionButton.getHeight()) / 2);
                         animation_open.start();
                         floatingActionButton.setVisibility(View.VISIBLE);
                         break;
@@ -151,6 +168,21 @@ public class StickerTest extends AppCompatActivity implements Animation.Animatio
 
             }
         });
+
+        adapter = new FragmentPagerItemAdapter(
+                getSupportFragmentManager(), FragmentPagerItems.with(this)
+                .add(R.string.sticker_cloth, TemperatureStickerFramgment.class)
+                .add(R.string.sticker_body, HumidityStickerFragment.class)
+                .add(R.string.sticker_emoji,HeartRateStickerFragment.class)
+                .create());
+        viewpager.setAdapter(adapter);
+        viewpagertab.setViewPager(viewpager);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        loadFeelData();
     }
 
     private void autoLayout() {
@@ -173,7 +205,7 @@ public class StickerTest extends AppCompatActivity implements Animation.Animatio
         int offsetx = -width / 4;
         int offsety = height / 2 / 5;
         heartRate.getMatrix().setTranslate(0, offsety);
-        heartRate.getMatrix().postScale(0.7f,0.7f);
+        heartRate.getMatrix().postScale(0.7f, 0.7f);
     }
 
     private void layoutTemperature() {
@@ -183,7 +215,7 @@ public class StickerTest extends AppCompatActivity implements Animation.Animatio
         int offsetx = -width / 4;
         int offsety = height / 5;
         temperature.getMatrix().setTranslate(0, offsety);
-        temperature.getMatrix().postScale(0.7f,0.7f);
+        temperature.getMatrix().postScale(0.7f, 0.7f);
     }
 
     private void layoutHumidity() {
@@ -193,7 +225,25 @@ public class StickerTest extends AppCompatActivity implements Animation.Animatio
         int offsetx = -width / 4;
         int offsety = height * 3 / 2 / 5;
         humidity.getMatrix().setTranslate(0, offsety);
-        humidity.getMatrix().postScale(0.7f,0.7f);
+        humidity.getMatrix().postScale(0.7f, 0.7f);
+    }
+
+    public void loadFeelData(){
+        for(int i=0;i<adapter.getCount();i++){
+            if(adapter.getPage(i) instanceof HeartRateStickerFragment){
+
+                Timber.d("here load heart");
+            }
+
+            if(adapter.getPage(i) instanceof HumidityStickerFragment){
+                Timber.d("here load humidity");
+            }
+
+            if(adapter.getPage(i) instanceof TemperatureStickerFramgment){
+                Timber.d("here load temp");
+            }
+
+        }
     }
 
     private void openMenu() {
@@ -209,7 +259,7 @@ public class StickerTest extends AppCompatActivity implements Animation.Animatio
         Animation aauto = AnimationUtils.loadAnimation(this, R.anim.subbuttom_open);
         Animation atemp = AnimationUtils.loadAnimation(this, R.anim.subbuttom_open);
         Animation ahum = AnimationUtils.loadAnimation(this, R.anim.subbuttom_open);
-        Animation asave=AnimationUtils.loadAnimation(this,R.anim.subbuttom_open);
+        Animation asave = AnimationUtils.loadAnimation(this, R.anim.subbuttom_open);
         asave.setStartOffset(100);
         aheart.setStartOffset(200);
         atemp.setStartOffset(300);
@@ -255,7 +305,7 @@ public class StickerTest extends AppCompatActivity implements Animation.Animatio
         Animation aauto = AnimationUtils.loadAnimation(this, R.anim.subbutton_close);
         Animation atemp = AnimationUtils.loadAnimation(this, R.anim.subbutton_close);
         Animation ahum = AnimationUtils.loadAnimation(this, R.anim.subbutton_close);
-        Animation asave=AnimationUtils.loadAnimation(this,R.anim.subbutton_close);
+        Animation asave = AnimationUtils.loadAnimation(this, R.anim.subbutton_close);
         aauto.setStartOffset(400);
         asave.setStartOffset(300);
         aheart.setStartOffset(200);
@@ -286,7 +336,7 @@ public class StickerTest extends AppCompatActivity implements Animation.Animatio
         fabHum.startAnimation(ahum);
     }
 
-    private void toggle(){
+    private void toggle() {
         Animation animation;
         if (isOpened) {
             animation = AnimationUtils.loadAnimation(this, R.anim.floatbuttom_close);
@@ -300,9 +350,21 @@ public class StickerTest extends AppCompatActivity implements Animation.Animatio
         }
     }
 
+    public void setTemp(float temp) {
+        this.temp = temp;
+    }
+
+    public void setHum(float hum) {
+        this.hum = hum;
+    }
+
+    public void setHeart(float heart) {
+        this.heart = heart;
+    }
+
     public static void start(Activity activity) {
-        Intent intent = new Intent(activity, StickerTest.class);
-        activity.startActivity(intent);
+        //Intent intent = new Intent(activity, StickerTest.class);
+        //activity.startActivity(intent);
     }
 
     @OnClick(R.id.floatingActionButton)
@@ -334,25 +396,25 @@ public class StickerTest extends AppCompatActivity implements Animation.Animatio
 
     }
 
-    @OnClick({R.id.fabHum, R.id.fabTemp, R.id.fabHeart, R.id.fabAuto,R.id.fabSave})
+    @OnClick({R.id.fabHum, R.id.fabTemp, R.id.fabHeart, R.id.fabAuto, R.id.fabSave})
     public void onViewClicked(View view) {
         switch (view.getId()) {
             case R.id.fabHum:
                 stickerview.remove(humidity);
                 humidity = new FeelingSticker(this).setText("24").setType(FeelingSticker.HUMIDITY).resizeText();
-                humidity.getMatrix().postScale(0.7f,0.7f);
+                humidity.getMatrix().postScale(0.7f, 0.7f);
                 stickerview.addSticker(humidity);
                 break;
             case R.id.fabTemp:
                 stickerview.remove(temperature);
                 temperature = new FeelingSticker(this).setText("24").setType(FeelingSticker.TEMPERATURE).resizeText();
-                temperature.getMatrix().postScale(0.7f,0.7f);
+                temperature.getMatrix().postScale(0.7f, 0.7f);
                 stickerview.addSticker(temperature);
                 break;
             case R.id.fabHeart:
                 stickerview.remove(heartRate);
                 heartRate = new FeelingSticker(this).setText("24").setType(FeelingSticker.HEARTRATE).resizeText();
-                heartRate.getMatrix().postScale(0.7f,0.7f);
+                heartRate.getMatrix().postScale(0.7f, 0.7f);
                 stickerview.addSticker(heartRate);
                 break;
             case R.id.fabAuto:
@@ -361,17 +423,18 @@ public class StickerTest extends AppCompatActivity implements Animation.Animatio
                 bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
                 break;
             case R.id.fabSave:
-                Bitmap bitmap=stickerview.createBitmap();
-                final ProgressDialog progressDialog=ProgressDialog.show(this,"Upload","please waiting.....",false,false);
+                Bitmap bitmap = stickerview.createBitmap();
+                final ProgressDialog progressDialog = ProgressDialog.show(this, "Upload", "please waiting.....", false, false);
                 progressDialog.show();
-                Feel feel=createFeel();
+                Feel feel = createFeel();
 
                 repository.uploadFeeling(feel, Bitmap2Bytes(bitmap), new UploadCallBack() {
-                    int count=0;
+                    int count = 0;
+
                     @Override
                     public void onSuccess(String message) {
                         count++;
-                        if(count==2){
+                        if (count == 2) {
                             progressDialog.dismiss();
                         }
                     }
@@ -379,7 +442,7 @@ public class StickerTest extends AppCompatActivity implements Animation.Animatio
                     @Override
                     public void onFail(String message) {
                         count++;
-                        if(count==2){
+                        if (count == 2) {
                             progressDialog.dismiss();
                         }
                     }
@@ -388,20 +451,51 @@ public class StickerTest extends AppCompatActivity implements Animation.Animatio
         }
     }
 
-    private byte[] Bitmap2Bytes(Bitmap bm){
+    private byte[] Bitmap2Bytes(Bitmap bm) {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         bm.compress(Bitmap.CompressFormat.PNG, 100, baos);
         return baos.toByteArray();
     }
 
-    private Feel createFeel(){
-        Calendar c=Calendar.getInstance();
-        String time=c.get(Calendar.YEAR)+""+c.get(Calendar.MONTH)+""+c.get(Calendar.DATE);
-        Feel feel=new Feel();
+    private Feel createFeel() {
+        Calendar c = Calendar.getInstance();
+        String time = c.get(Calendar.YEAR) + "" + c.get(Calendar.MONTH) + "" + c.get(Calendar.DATE);
+        Feel feel = new Feel();
         feel.setHumidity(24);
         feel.setHeartRate(120);
         feel.setTemperature(30);
         feel.setDate(time);
         return feel;
+    }
+
+    @Override
+    public void onClickStick(int type,String stick) {
+//        InputStream input= null;
+//        try {
+//            input = getResources().getAssets().open(stick);
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//        BitmapDrawable bitmapDrawable=new BitmapDrawable(getResources(),input);
+//        Bitmap b = bitmapDrawable.getBitmap();
+//        Bitmap bitmapResized = Bitmap.createScaledBitmap(b, 300, 300, false);
+//        DrawableSticker sticker=new DrawableSticker(new BitmapDrawable(getResources(), bitmapResized));
+//        stickerview.addSticker(sticker, Sticker.Position.CENTER);
+        if(personSticker==null){
+            personSticker=new PersonSticker(this);
+            stickerview.addSticker(personSticker);
+        }
+        switch (type){
+            case HEART:
+                personSticker.setEmoji(stick);
+                break;
+            case TEMP:
+                personSticker.setCloth(stick);
+                break;
+            case HUM:
+                personSticker.setBody(stick);
+                break;
+        }
+        stickerview.invalidate();
     }
 }

@@ -5,6 +5,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
 
+import com.example.ffes.feeling.feelview.FeelView;
 import com.xiaopo.flying.sticker.StickerView;
 
 import butterknife.BindView;
@@ -29,10 +30,10 @@ public class MainActivity extends AppCompatActivity {
     public void onViewClicked(View view) {
         switch (view.getId()) {
             case R.id.browser:
-                StickerTest.start(this);
+                CreateFeeling.start(this);
                 break;
             case R.id.button2:
-                CreateFeeling.start(this);
+                FeelView.start(this);
                 break;
         }
     }

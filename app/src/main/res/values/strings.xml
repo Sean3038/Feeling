@@ -1,5 +1,8 @@
 <resources>
     <string name="app_name">Feeling</string>
+    <string name="sticker_cloth">衣服</string>
+    <string name="sticker_emoji">表情</string>
+    <string name="sticker_body">皮膚</string>
     <dimen name="fab_dimen">16dp</dimen>
     <dimen name="little_fab_dimen">20dp</dimen>
 </resources>

@@ -11,6 +11,7 @@ import android.graphics.BitmapFactory;
 import android.location.LocationManager;
 import android.media.ThumbnailUtils;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
@@ -37,32 +38,22 @@ import java.util.Calendar;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
-public class CreateFeeling extends AppCompatActivity implements TakePicture {
+public class CreateFeeling extends StickerTest implements TakePicture {
 
     public static final int MAKE_FEELING_REQUEST = 1;
     public static final int START_CAMERA = 2;
     public static final int ENABLE_BLUETOOTH = 3;
-
-    @BindView(R.id.imageView)
-    ImageView imageView;
-    @BindView(R.id.stickerview)
-    StickerView stickerview;
 
     Uri imageurl;
 
     Watch mWatch;
     GPS mGps;
 
-    @BindView(R.id.content)
-    TextView content;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_create_feeling);
-        ButterKnife.bind(this);
         checkpermission();
-        stickerview.configDefaultIcons();
     }
 
     @Override
@@ -91,6 +82,8 @@ public class CreateFeeling extends AppCompatActivity implements TakePicture {
                 if (resultCode == RESULT_OK) {
                     imageView.setImageBitmap(getBitmapByUri(imageurl));
 //                    this.getContentResolver().delete(imageurl, null, null);
+                }else{
+                    finish();
                 }
             case ENABLE_BLUETOOTH:
                 if (resultCode == RESULT_OK) {
@@ -233,5 +226,14 @@ public class CreateFeeling extends AppCompatActivity implements TakePicture {
         mGps = new GPS(this);
     }
 
+    class GetAllDataAsyncTask extends AsyncTask<Void,Void,Void>{
+        @Override
+        protected Void doInBackground(Void... params) {
+            while(mGps.getAddress()== null || mWatch.getHeartRate()==0 || mWatch.getHumidity()==0 || mWatch.getTemperature()==0){
 
+            }
+
+            return null;
+        }
+    }
 }
