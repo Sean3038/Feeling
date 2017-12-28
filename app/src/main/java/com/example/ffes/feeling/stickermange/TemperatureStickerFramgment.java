@@ -20,7 +20,7 @@ public class TemperatureStickerFramgment extends PageFragment implements Sticker
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        setTemperature(25);
+        setTemperature(60);
     }
 
 
