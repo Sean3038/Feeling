@@ -2,6 +2,7 @@ package com.example.ffes.feeling;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.content.Context;
 import android.content.Intent;
@@ -37,6 +38,7 @@ import java.util.Calendar;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import timber.log.Timber;
 
 public class CreateFeeling extends StickerTest implements TakePicture {
 
@@ -53,14 +55,13 @@ public class CreateFeeling extends StickerTest implements TakePicture {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        mWatch = new Watch(this);
         checkpermission();
     }
 
     @Override
-    protected void onStart() {
-        super.onStart();
-        checkBT();
-        checkLoaction();
+    protected void onResume() {
+        super.onResume();
     }
 
     @Override
@@ -81,13 +82,17 @@ public class CreateFeeling extends StickerTest implements TakePicture {
             case START_CAMERA:
                 if (resultCode == RESULT_OK) {
                     imageView.setImageBitmap(getBitmapByUri(imageurl));
+                    checkBT();
+                    checkLoaction();
+                    GetAllDataAsyncTask task=new GetAllDataAsyncTask();
+                    //task.execute();
 //                    this.getContentResolver().delete(imageurl, null, null);
                 }else{
                     finish();
                 }
             case ENABLE_BLUETOOTH:
                 if (resultCode == RESULT_OK) {
-                    loadBTDevice();
+
                 }
         }
     }
@@ -117,7 +122,7 @@ public class CreateFeeling extends StickerTest implements TakePicture {
                 }
                 if (flag) {
                     Toast.makeText(this, "加載成功", Toast.LENGTH_LONG).show();
-                    takePicture();
+                    //takePicture();
                 } else {
                     Toast.makeText(this, "加載失敗", Toast.LENGTH_LONG).show();
                     finish();
@@ -218,7 +223,7 @@ public class CreateFeeling extends StickerTest implements TakePicture {
     }
 
     private void loadBTDevice() {
-        mWatch = new Watch(this);
+
         mWatch.connect();
     }
 
@@ -227,13 +232,30 @@ public class CreateFeeling extends StickerTest implements TakePicture {
     }
 
     class GetAllDataAsyncTask extends AsyncTask<Void,Void,Void>{
+
+        ProgressDialog progressDialog;
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            progressDialog=ProgressDialog.show(CreateFeeling.this,"感覺資料","Please Waiting",false);
+        }
+
         @Override
         protected Void doInBackground(Void... params) {
-            while(mGps.getAddress()== null || mWatch.getHeartRate()==0 || mWatch.getHumidity()==0 || mWatch.getTemperature()==0){
+            while(mWatch.getHeartRate()==0 || mWatch.getHumidity()==0 || mWatch.getTemperature()==0){
 
             }
-
+            setHeart(mWatch.getHeartRate());
+            setHum(mWatch.getHumidity());
+            setTemp(mWatch.getTemperature());
             return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+            progressDialog.dismiss();
         }
     }
 }

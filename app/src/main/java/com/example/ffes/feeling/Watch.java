@@ -14,6 +14,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+import timber.log.Timber;
+
 /**
  * Created by Ffes on 2017/12/14.
  */
@@ -43,6 +45,7 @@ public class Watch implements Bluetooth,GetFeeling {
         mBluetoothAdapter=BluetoothAdapter.getDefaultAdapter();
     }
 
+
     @Override
     public synchronized void connect() {
         if(isBluetoothConnected){
@@ -60,13 +63,16 @@ public class Watch implements Bluetooth,GetFeeling {
     @Override
     public synchronized void disconnect() {
         if (socket != null) {
-            connectFeelingAsyncTask.cancel(true);
-            receiveDataAsyncTask.cancel(true);
             try {
                 socket.getInputStream().close();
                 socket.getOutputStream().close();
                 socket.close();
+                socket=null;
                 isBluetoothConnected = false;
+                connectFeelingAsyncTask.cancel(true);
+                if(receiveDataAsyncTask!=null) {
+                    receiveDataAsyncTask.cancel(true);
+                }
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -106,10 +112,10 @@ public class Watch implements Bluetooth,GetFeeling {
                     mBluetoothAdapter.cancelDiscovery();
                     socket.connect();
                 } catch (IOException e) {
-                    e.printStackTrace();
                     connectSuccess = false;
                 }
             }
+
             return null;
         }
 
@@ -166,6 +172,7 @@ public class Watch implements Bluetooth,GetFeeling {
                         byteBuffer.write(buffer,0,len);
                         incomingMessage=new String(byteBuffer.toByteArray());
                         publishProgress(incomingMessage);
+                        Timber.d("Hereeeeeee");
                     }
                     byteBuffer.close();
                 } catch (IOException e) {
@@ -182,9 +189,12 @@ public class Watch implements Bluetooth,GetFeeling {
                 int l = values[0].lastIndexOf("#");
                 int s = values[0].lastIndexOf("~");
                 if(l<s){
-                    String result = values[0].substring(l+1, s);
-                    Toast.makeText(mContext, result,
-                            Toast.LENGTH_LONG).show();
+                    String[] result = values[0].substring(l+1, s).split(",");
+                    heartRate= Float.parseFloat(result[0]);
+                    temperature= Float.parseFloat(result[1]);
+                    humidity= Float.parseFloat(result[2]);
+                    Toast.makeText(mContext, result[0]+" "+result[1]+" "+result[2] ,
+                            Toast.LENGTH_SHORT).show();
                 }
             }
         }

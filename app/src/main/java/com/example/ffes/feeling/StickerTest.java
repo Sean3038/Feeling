@@ -401,19 +401,19 @@ public class StickerTest extends AppCompatActivity implements Animation.Animatio
         switch (view.getId()) {
             case R.id.fabHum:
                 stickerview.remove(humidity);
-                humidity = new FeelingSticker(this).setText("24").setType(FeelingSticker.HUMIDITY).resizeText();
+                humidity = new FeelingSticker(this).setText("50").setType(FeelingSticker.HUMIDITY).resizeText();
                 humidity.getMatrix().postScale(0.7f, 0.7f);
                 stickerview.addSticker(humidity);
                 break;
             case R.id.fabTemp:
                 stickerview.remove(temperature);
-                temperature = new FeelingSticker(this).setText("24").setType(FeelingSticker.TEMPERATURE).resizeText();
+                temperature = new FeelingSticker(this).setText("25").setType(FeelingSticker.TEMPERATURE).resizeText();
                 temperature.getMatrix().postScale(0.7f, 0.7f);
                 stickerview.addSticker(temperature);
                 break;
             case R.id.fabHeart:
                 stickerview.remove(heartRate);
-                heartRate = new FeelingSticker(this).setText("24").setType(FeelingSticker.HEARTRATE).resizeText();
+                heartRate = new FeelingSticker(this).setText("80").setType(FeelingSticker.HEARTRATE).resizeText();
                 heartRate.getMatrix().postScale(0.7f, 0.7f);
                 stickerview.addSticker(heartRate);
                 break;
