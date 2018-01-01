@@ -30,6 +30,8 @@ public class Watch implements Bluetooth,GetFeeling {
     BluetoothSocket socket;
     Context mContext;
 
+    ConnectCallBack callBack;
+
     ProgressDialog mProgressDialog;
     private boolean isBluetoothConnected=false;
     private BluetoothDevice currentDevice;
@@ -40,9 +42,10 @@ public class Watch implements Bluetooth,GetFeeling {
     ConnectFeelingAsyncTask connectFeelingAsyncTask;
     ReceiveDataAsyncTask receiveDataAsyncTask;
 
-    Watch(Context context){
+    Watch(Context context,ConnectCallBack callBack){
         mContext=context;
         mBluetoothAdapter=BluetoothAdapter.getDefaultAdapter();
+        this.callBack=callBack;
     }
 
 
@@ -99,11 +102,6 @@ public class Watch implements Bluetooth,GetFeeling {
         boolean connectSuccess = true;
 
         @Override
-        protected void onPreExecute() {
-            mProgressDialog = ProgressDialog.show(mContext, "Connecting...", "Please wait!!!");
-        }
-
-        @Override
         protected Void doInBackground(String... params) {
             if (socket == null || !isBluetoothConnected) {
                 try {
@@ -124,15 +122,11 @@ public class Watch implements Bluetooth,GetFeeling {
             super.onPostExecute(aVoid);
             if (connectSuccess) {
                 isBluetoothConnected = true;
-                Toast.makeText(mContext, "連接成功",
-                        Toast.LENGTH_LONG).show();
-                mProgressDialog.dismiss();
                 receiveDataAsyncTask=new ReceiveDataAsyncTask();
-                receiveDataAsyncTask.execute();
+                receiveDataAsyncTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                callBack.onConnected();
             } else {
-                Toast.makeText(mContext, "連接失敗",
-                        Toast.LENGTH_LONG).show();
-                mProgressDialog.dismiss();
+                callBack.onDismiss();
             }
         }
     }
@@ -172,7 +166,6 @@ public class Watch implements Bluetooth,GetFeeling {
                         byteBuffer.write(buffer,0,len);
                         incomingMessage=new String(byteBuffer.toByteArray());
                         publishProgress(incomingMessage);
-                        Timber.d("Hereeeeeee");
                     }
                     byteBuffer.close();
                 } catch (IOException e) {
@@ -190,13 +183,17 @@ public class Watch implements Bluetooth,GetFeeling {
                 int s = values[0].lastIndexOf("~");
                 if(l<s){
                     String[] result = values[0].substring(l+1, s).split(",");
-                    heartRate= Float.parseFloat(result[0]);
+                    humidity= Float.parseFloat(result[0]);
                     temperature= Float.parseFloat(result[1]);
-                    humidity= Float.parseFloat(result[2]);
-                    Toast.makeText(mContext, result[0]+" "+result[1]+" "+result[2] ,
-                            Toast.LENGTH_SHORT).show();
+                    heartRate= Float.parseFloat(result[2]);
+                    Timber.d(heartRate+" "+temperature+" "+humidity);
                 }
             }
         }
+    }
+
+    interface ConnectCallBack{
+        void onConnected();
+        void onDismiss();
     }
 }

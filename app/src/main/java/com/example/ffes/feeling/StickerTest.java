@@ -232,15 +232,16 @@ public class StickerTest extends AppCompatActivity implements Animation.Animatio
         for(int i=0;i<adapter.getCount();i++){
             if(adapter.getPage(i) instanceof HeartRateStickerFragment){
 
-                Timber.d("here load heart");
+                ((HeartRateStickerFragment) adapter.getPage(i)).setHeartRate(heart);
             }
 
             if(adapter.getPage(i) instanceof HumidityStickerFragment){
-                Timber.d("here load humidity");
+                ((HumidityStickerFragment) adapter.getPage(i)).setHumidity(hum);
             }
 
             if(adapter.getPage(i) instanceof TemperatureStickerFramgment){
-                Timber.d("here load temp");
+
+                ((TemperatureStickerFramgment) adapter.getPage(i)).setTemperature(temp);
             }
 
         }
@@ -367,6 +368,7 @@ public class StickerTest extends AppCompatActivity implements Animation.Animatio
         //activity.startActivity(intent);
     }
 
+
     @OnClick(R.id.floatingActionButton)
     public void onViewClicked() {
         toggle();
@@ -401,19 +403,19 @@ public class StickerTest extends AppCompatActivity implements Animation.Animatio
         switch (view.getId()) {
             case R.id.fabHum:
                 stickerview.remove(humidity);
-                humidity = new FeelingSticker(this).setText("50").setType(FeelingSticker.HUMIDITY).resizeText();
+                humidity = new FeelingSticker(this).setText(""+(int)hum).setType(FeelingSticker.HUMIDITY).resizeText();
                 humidity.getMatrix().postScale(0.7f, 0.7f);
                 stickerview.addSticker(humidity);
                 break;
             case R.id.fabTemp:
                 stickerview.remove(temperature);
-                temperature = new FeelingSticker(this).setText("25").setType(FeelingSticker.TEMPERATURE).resizeText();
+                temperature = new FeelingSticker(this).setText(""+(int)temp).setType(FeelingSticker.TEMPERATURE).resizeText();
                 temperature.getMatrix().postScale(0.7f, 0.7f);
                 stickerview.addSticker(temperature);
                 break;
             case R.id.fabHeart:
                 stickerview.remove(heartRate);
-                heartRate = new FeelingSticker(this).setText("80").setType(FeelingSticker.HEARTRATE).resizeText();
+                heartRate = new FeelingSticker(this).setText(""+(int)heart).setType(FeelingSticker.HEARTRATE).resizeText();
                 heartRate.getMatrix().postScale(0.7f, 0.7f);
                 stickerview.addSticker(heartRate);
                 break;
@@ -461,9 +463,9 @@ public class StickerTest extends AppCompatActivity implements Animation.Animatio
         Calendar c = Calendar.getInstance();
         String time = c.get(Calendar.YEAR) + "" + c.get(Calendar.MONTH) + "" + c.get(Calendar.DATE);
         Feel feel = new Feel();
-        feel.setHumidity(24);
-        feel.setHeartRate(120);
-        feel.setTemperature(30);
+        feel.setHumidity(hum);
+        feel.setHeartRate(heart);
+        feel.setTemperature(temp);
         feel.setDate(time);
         return feel;
     }
@@ -485,6 +487,7 @@ public class StickerTest extends AppCompatActivity implements Animation.Animatio
             personSticker=new PersonSticker(this);
             stickerview.addSticker(personSticker);
         }
+
         switch (type){
             case HEART:
                 personSticker.setEmoji(stick);

@@ -55,13 +55,13 @@ public class CreateFeeling extends StickerTest implements TakePicture {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mWatch = new Watch(this);
         checkpermission();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
+
     }
 
     @Override
@@ -82,10 +82,8 @@ public class CreateFeeling extends StickerTest implements TakePicture {
             case START_CAMERA:
                 if (resultCode == RESULT_OK) {
                     imageView.setImageBitmap(getBitmapByUri(imageurl));
-                    checkBT();
-                    checkLoaction();
                     GetAllDataAsyncTask task=new GetAllDataAsyncTask();
-                    //task.execute();
+                    task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
 //                    this.getContentResolver().delete(imageurl, null, null);
                 }else{
                     finish();
@@ -121,8 +119,8 @@ public class CreateFeeling extends StickerTest implements TakePicture {
                     }
                 }
                 if (flag) {
-                    Toast.makeText(this, "加載成功", Toast.LENGTH_LONG).show();
-                    //takePicture();
+                    checkBT();
+                    checkLoaction();
                 } else {
                     Toast.makeText(this, "加載失敗", Toast.LENGTH_LONG).show();
                     finish();
@@ -202,11 +200,7 @@ public class CreateFeeling extends StickerTest implements TakePicture {
         if (!BluetoothAdapter.getDefaultAdapter().isEnabled()) {
             Intent intent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
             startActivityForResult(intent, ENABLE_BLUETOOTH);
-            Toast.makeText(getApplicationContext(), "Turned on"
-                    , Toast.LENGTH_LONG).show();
         } else {
-            Toast.makeText(getApplicationContext(), "Already on",
-                    Toast.LENGTH_LONG).show();
             loadBTDevice();
         }
     }
@@ -223,7 +217,21 @@ public class CreateFeeling extends StickerTest implements TakePicture {
     }
 
     private void loadBTDevice() {
+        final ProgressDialog progressDialog=ProgressDialog.show(this,"連結手環","Please Waiting...",false);
+        progressDialog.show();
+        mWatch = new Watch(this, new Watch.ConnectCallBack() {
+            @Override
+            public void onConnected() {
+                progressDialog.dismiss();
+                takePicture();
+            }
 
+            @Override
+            public void onDismiss() {
+                progressDialog.dismiss();
+                finish();
+            }
+        });
         mWatch.connect();
     }
 
@@ -238,7 +246,7 @@ public class CreateFeeling extends StickerTest implements TakePicture {
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
-            progressDialog=ProgressDialog.show(CreateFeeling.this,"感覺資料","Please Waiting",false);
+
         }
 
         @Override
@@ -246,16 +254,17 @@ public class CreateFeeling extends StickerTest implements TakePicture {
             while(mWatch.getHeartRate()==0 || mWatch.getHumidity()==0 || mWatch.getTemperature()==0){
 
             }
-            setHeart(mWatch.getHeartRate());
-            setHum(mWatch.getHumidity());
-            setTemp(mWatch.getTemperature());
             return null;
         }
 
         @Override
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
-            progressDialog.dismiss();
+            setHeart(mWatch.getHeartRate());
+            setHum(mWatch.getHumidity());
+            setTemp(mWatch.getTemperature());
+            loadFeelData();
+            Timber.d("get data");
         }
     }
 }

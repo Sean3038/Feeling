@@ -27,6 +27,7 @@
         </activity>
         <activity
             android:name=".CreateFeeling"
+            android:screenOrientation="portrait"
             android:theme="@style/Theme.AppCompat.NoActionBar" />
 
         <provider

@@ -41,7 +41,7 @@ public class PersonSticker extends Sticker {
         body=loadDrawable("humidity/default/0.png");
         realBounds=new Rect(0,0,getWidth(),getHeight());
         emojiBounds=new Rect(180,180,300,280);
-        clothBounds=new Rect(125,315,355,435);
+        clothBounds=new Rect(130,320,350,430);
         bodyBounds=new Rect(0,0,getWidth(),getHeight());
     }
 

@@ -23,8 +23,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:adjustViewBounds="true"
-            android:scaleType="fitCenter"
-            app:srcCompat="@drawable/bg_example" />
+            android:scaleType="fitCenter" />
     </com.xiaopo.flying.sticker.StickerView>
 
 
